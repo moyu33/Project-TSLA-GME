@@ -29,67 +29,60 @@ def make_graph(stock_data, revenue_data, stock):
     xaxis_rangeslider_visible=True)
     fig.show()
 
+################################################################################################################################################
 
-#Tesla question 1
-tesla = yf.Ticker("TSLA")
-tesla_data = tesla.history(period="max")
+tesla=yf.Ticker("TSLA")
+tesla_data=tesla.history(period='max')
 tesla_data.reset_index(inplace=True)
 tesla_data.head(5)
 
-##########################################################################################################################################
+url = 'https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/revenue.htm'
+html_data = requests.get(url).text
 
-#Tesla question 2
-url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/revenue.htm"
-html_data  = requests.get(url).text
+soup_1 = BeautifulSoup(html_data,"html.parser")
+tesla_revenue = pd.DataFrame(columns=['Date','Revenue'])
 
-soup = BeautifulSoup(hmtl_data, 'html.parser')
+table = soup_1.find_all("tbody")[1]
+for row in table.find_all('tr'):
+    col = row.find_all('td')
+    new_row = pd.DataFrame({'Date':[col[0].text],'Revenue':[col[1].text]})
+    tesla_revenue = pd.concat([tesla_revenue,new_row],ignore_index=True)
 
-tesla_revenue = pd.DataFrame(columns=["Date", "Revenue"])
-tab = pd.read_html(url)
-df = tab[1]
-for index, row in df.iterrows():
-    date = row['Date']
-    revenue = row['Revenue']
-    tesla_revenue = tesla_revenue.append({"Date": date, "Revenue": revenue}, ignore_index=True)
+for row in range(0,len(tesla_revenue)):
+    tesla_revenue.loc[row,'Revenue'] = tesla_revenue.loc[row,'Revenue'].replace(',',"")
+    tesla_revenue.loc[row,'Revenue'] = tesla_revenue.loc[row,'Revenue'].replace('$',"")
 
-tesla_revenue["Revenue"] = tesla_revenue['Revenue'].str.replace(',|\$',"")
 tesla_revenue.dropna(inplace=True)
 tesla_revenue = tesla_revenue[tesla_revenue['Revenue'] != ""]
 
-tesla_revenue.tail(n=5)
+tesla_revenue.tail(5)
 
-##########################################################################################################################################
+################################################################################################################################################
 
-#GameStop question 3
 gamestop = yf.Ticker("GME")
 gme_data = gamestop.history(period="max")
 gme_data.reset_index(inplace=True)
-gme_data.head(n=5)
+gme_data.head(5)
 
-##########################################################################################################################################
-
-#GameStop question 4
 url = " https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/stock.html"
 html_data_2  = requests.get(url).text
 
-soup = BeautifulSoup(hmtl_data_2, 'html.parser')
+soup_2 = BeautifulSoup(html_data_2, 'html.parser')
+gme_revenue = pd.DataFrame(columns=['Date','Revenue'])
 
-gme_revenue = pd.DataFrame(columns=["Date", "Revenue"])
-tab_2 = pd.read_html(url)
-df_2 = tab[1]
-for index, row in df.iterrows():
-    date = row['Date']
-    revenue = row['Revenue']
-    gme_revenue = gme_revenue.append({"Date": date, "Revenue": revenue}, ignore_index=True)
+table2 = soup_2.find_all('tbody')[1]
+for row in table2.find_all('tr'):
+    col = row.find_all('td')
+    new_row = pd.DataFrame({'Date':[col[0].text],'Revenue':[col[1].text]})
+    gme_revenue = pd.concat([gme_revenue,new_row],ignore_index=True)
 
-gme_revenue.tail(n=5)
+for row in range(0,len(gme_revenue)):
+    gme_revenue.loc[row,'Revenue'] = gme_revenue.loc[row,'Revenue'].replace(',',"")
+    gme_revenue.loc[row,'Revenue'] = gme_revenue.loc[row,'Revenue'].replace('$',"")
 
-##########################################################################################################################################
+gme_revenue.tail(5)
 
-#Tesla question 5
+################################################################################################################################################
+
 make_graph(tesla_data, tesla_revenue, 'Tesla')
-
-##########################################################################################################################################
-
-#GameStop question 6
 make_graph(gme_data, gme_revenue, 'GameStop')
